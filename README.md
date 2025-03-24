@@ -35,10 +35,10 @@ This repository contains scripts to create a custom AWS AMI with Packer and to p
 
 ### AWS credentials
 You can set your AWS credentials by exporting them as environment variables:<br>
-    ```bash
-    export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
-    export AWS_SECRET_ACCESS_KEY="<YOUR_AWS_SECRET_ACCESS_KEY"
-    ```
+```shell
+export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
+export AWS_SECRET_ACCESS_KEY="<YOUR_AWS_SECRET_ACCESS_KEY"
+```
 
 Alternatively, create a credentials file at:
 - Linux/OS X: `$HOME/.aws/credentials`
