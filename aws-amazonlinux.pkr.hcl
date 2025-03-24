@@ -15,7 +15,7 @@ source "amazon-ebs" "amazon-linux" {
   source_ami_filter {
     filters = {
       name                = "al2023-ami-2023*"
-      "architecture"      = "x86_64"
+      architecture        = "x86_64"
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
@@ -23,6 +23,9 @@ source "amazon-ebs" "amazon-linux" {
     owners      = ["amazon"]
   }
   ssh_username = "ec2-user"
+  tags = {
+    description = "Assignment 8 - aawihardja"
+  }
 }
 
 build {
