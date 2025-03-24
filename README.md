@@ -16,6 +16,7 @@ This repository contains scripts to create a custom AWS AMI with Packer and to p
 - [Testing and Verification](#testing-and-verification)
   - [SSH Access](#ssh-access)
 - [Troubleshooting](#troubleshooting)
+- [Cleanup](#cleanup)
 - [Screenshots](#screenshots)
 
 ## Prerequisites
@@ -180,6 +181,14 @@ chmod +x get_my_ip.sh
 - #### Terraform Apply Failures:<br>
     Verify that your AWS credentials are correctly set up and that your VPC/subnet configurations meet AWS requirements.
 
+## Cleanup
+To remove the created resources, run the command:
+```bash
+terraform destroy
+```
+Type `yes` when prompted. This will not remove the AMI, you may want to remove the AMI by going to the AWS Console under  
+<b>EC2 > Images > AMIs > Actions > Deregister AMI</b>. You may also want to remove the snapshot: <b>EC2 > Elastic Block Store > Snapshots</b>
+
 ## Screenshots
 - #### Created AMI
   <img src="images/created_ami.png" alt="Created AMI" width="500">
@@ -195,3 +204,9 @@ chmod +x get_my_ip.sh
 
 - #### Created Subnets
   <img src="images/created_subnets.png" alt="Created Subnets" width="500">
+
+- #### SSH from local to Bastion
+  <img src="images/ssh_to_bastion.png" alt="SSH to Bastion" width="500">
+
+- #### SSH from Bastion to Private EC2
+  <img src="images/ssh_from_bastion_to_private_ec2.png" alt="SSH to Private EC2" width="500">
