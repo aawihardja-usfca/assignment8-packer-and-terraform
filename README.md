@@ -16,7 +16,7 @@ This repository contains scripts to create a custom AWS AMI with Packer and to p
 - [Testing and Verification](#testing-and-verification)
   - [SSH Access](#ssh-access)
 - [Troubleshooting](#troubleshooting)
-- [Screenshot](#screenshot)
+- [Screenshots](#screenshots)
 
 ## Prerequisites
 * #### Packer
@@ -180,4 +180,18 @@ chmod +x get_my_ip.sh
 - #### Terraform Apply Failures:<br>
     Verify that your AWS credentials are correctly set up and that your VPC/subnet configurations meet AWS requirements.
 
-## Screenshot
+## Screenshots
+- #### Created AMI
+  <img src="images/created_ami.png" alt="Created AMI" width="500">
+
+- #### Created Bastion and EC2 instances
+  <img src="images/bastion_and_private_ec2s.png" alt="Bastion & Private EC2 Instance" width="500">
+
+- #### Bastion instance summary
+  <img src="images/bastion_summary.png" alt="Bastion instance summary" width="500">
+
+- #### Private EC2 summary
+  <img src="images/private_ec2_summary.png" alt="EC2 instance summary" width="500">
+
+- #### Created Subnets
+  <img src="images/created_subnets.png" alt="Created Subnets" width="500">
