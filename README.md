@@ -3,6 +3,20 @@
 This repository contains scripts to create a custom AWS AMI with Packer and to provision AWS infrastructure using Terraform. The custom AMI is based on Amazon Linux, pre-installed with Docker, and preconfigured with your SSH public key for secure access. The Terraform configuration sets up a complete AWS environment including VPC, public and private subnets, a bastion host, and six EC2 instances in the private subnet using your custom AMI.
 
 ## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+  - [AWS Credentials](#aws-credentials)
+  - [SSH Key Pair](#ssh-key-pair)
+- [Packer AMI Creation](#packer-ami-creation)
+  - [Initialize and Validate](#initialize-and-validate)
+  - [Build the AMI](#build-the-ami)
+- [Terraform Infrastructure Provisioning](#terraform-infrastructure-provisioning)
+  - [IP Setup for Bastion Host Access](#ip-setup-for-bastion-host-access)
+  - [Initialize, Validate, and Apply](#initialize-validate-and-apply)
+- [Testing and Verification](#testing-and-verification)
+  - [SSH Access](#ssh-access)
+- [Troubleshooting](#troubleshooting)
+- [Screenshot](#screenshot)
 
 ## Prerequisites
 * #### Packer
