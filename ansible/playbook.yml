@@ -1,0 +1,44 @@
+---
+- name: Manage Ubuntu EC2 instances
+  hosts: ubuntu
+  become: yes
+  tasks:
+    - name: Update and upgrade packages on Ubuntu
+      dnf:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Ensure the latest Docker is installed on Ubuntu
+      dnf:
+        name: docker.io
+        state: latest
+
+    - name: Check disk usage on Ubuntu
+      command: df -h
+      register: disk_usage
+
+    - name: Display disk usage for Ubuntu
+      debug:
+        var: disk_usage.stdout_lines
+
+- name: Manage Amazon Linux EC2 instances
+  hosts: amazon
+  become: yes
+  tasks:
+    - name: Update and upgrade packages on Amazon Linux
+      dnf:
+        name: '*'
+        state: latest
+
+    - name: Ensure the latest Docker is installed on Amazon Linux
+      dnf:
+        name: docker
+        state: latest
+
+    - name: Check disk usage on Amazon Linux
+      command: df -h
+      register: disk_usage
+
+    - name: Display disk usage for Amazon Linux
+      debug:
+        var: disk_usage.stdout_lines
