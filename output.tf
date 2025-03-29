@@ -1,9 +1,14 @@
-output "bastion_public_ip" {
-  description = "The public IP of the bastion host"
-  value       = aws_eip.bastion_ip.public_ip
+output "controller_public_ip" {
+  description = "The public IP of the Ansible controller"
+  value       = aws_instance.ansible-controller.public_ip
 }
 
-output "ec2_ips" {
-  description = "Private IPs of the 6 EC2 instances"
-  value       = aws_instance.ec2[*].private_ip
+output "amazon_linux_ips" {
+  description = "Private IPs of the Amazon Linux EC2s"
+  value       = aws_instance.ec2-amazon-linux[*].private_ip
+}
+
+output "ubuntu_ips" {
+  description = "Private IPs of the Ubuntu EC2s"
+  value       = aws_instance.ec2-ubuntu[*].private_ip
 }

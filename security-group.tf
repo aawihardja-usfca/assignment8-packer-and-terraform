@@ -1,5 +1,5 @@
-resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg"
+resource "aws_security_group" "controller_sg" {
+  name        = "controller-sg"
   description = "Allow ingress SSH from your IP"
   vpc_id      = module.vpc.vpc_id
 
@@ -19,15 +19,15 @@ resource "aws_security_group" "bastion_sg" {
 }
 
 resource "aws_security_group" "ec2_sg" {
-  name        = "ec2-security-group"
-  description = "Allow ingress SSH from Bastion Host"
+  name        = "ec2-sg"
+  description = "Allow ingress SSH from Ansible Controller"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id]
+    security_groups = [aws_security_group.controller_sg.id]
   }
 
   egress {

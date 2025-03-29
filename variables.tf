@@ -31,22 +31,5 @@ variable "aws_public_subnet_cidr" {
 variable "aws_private_subnet_cidr" {
   description = "CIDR blocks for private subnets"
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-}
-
-variable "bastion_prefix" {
-  description = "Prefix for Bastion Host"
-  type        = string
-  default     = "bastion"
-}
-
-variable "resource_tags" {
-  type = object({
-    TEAM = string
-    ENV  = string
-  })
-  default = {
-    TEAM = "9"
-    ENV  = "QA"
-  }
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }

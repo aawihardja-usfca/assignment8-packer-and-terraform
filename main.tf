@@ -2,13 +2,14 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Get the Amazon Linux AMI
 data "aws_ami" "amazon-linux" {
   most_recent = true
   owners      = ["self"]
 
   filter {
     name   = "name"
-    values = ["*packer-ami*"]
+    values = ["*ami*"]
   }
 
   filter {
@@ -17,14 +18,35 @@ data "aws_ami" "amazon-linux" {
   }
 
   filter {
-    name   = "tag:description"
-    values = ["Assignment 8 - aawihardja"]
+    name   = "tag:OS"
+    values = ["Amazon Linux"]
+  }
+}
+
+# Get the Ubuntu AMI
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["self"]
+
+  filter {
+    name   = "name"
+    values = ["*ami*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "tag:OS"
+    values = ["Ubuntu"]
   }
 }
 
 # Run the script get_my_ip.sh
 data "external" "my_ip" {
-  program = ["bash", "${path.module}/get_my_ip.sh"]
+  program = ["bash", "${path.module}/scripts/get_my_ip.sh"]
 }
 
 
@@ -54,9 +76,4 @@ module "vpc" {
   external_nat_ip_ids = aws_eip.nat.*.id # <= IPs specified here as input to the module
 
   enable_dns_hostnames = true
-
-  public_subnet_tags  = var.resource_tags
-  private_subnet_tags = var.resource_tags
-  tags                = var.resource_tags
-  vpc_tags            = var.resource_tags
 }
