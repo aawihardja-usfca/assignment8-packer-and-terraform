@@ -4,3 +4,5 @@
 
 # Ignore SSH keys
 my-aws-key*
+
+out
