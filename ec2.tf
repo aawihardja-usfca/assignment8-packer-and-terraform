@@ -8,7 +8,7 @@ resource "aws_instance" "ec2-amazon-linux" {
 
   tags = {
     Name = "EC2 Amazon Linux ${count.index + 1}"
-    OS   = "Amazon Linux"
+    OS   = "amazon"
   }
 }
 
@@ -37,6 +37,5 @@ resource "aws_instance" "ansible-controller" {
 
   tags = {
     Name = "Ansible Controller"
-    OS   = "amazon"
   }
 }
