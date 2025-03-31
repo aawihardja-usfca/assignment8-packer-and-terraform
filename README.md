@@ -265,7 +265,7 @@ terraform -chdir=terraform_config destroy
 
 Type yes when prompted.  
 
-You will need to remove the AMIs and the Snapshots from AWS Console manually.
+You will need to deregister the AMIs and delete the Snapshots from the AWS web console manually.
 
 ## Troubleshooting
 - #### Missing SSH Key Error:<br>
@@ -275,17 +275,26 @@ You will need to remove the AMIs and the Snapshots from AWS Console manually.
     Verify that your AWS credentials are correctly set up and that your VPC/subnet configurations meet AWS requirements.
 
 ## Screenshots
-- #### Created AMI
-  <img src="images/created_ami.png" alt="Created AMI" width="500">
+- #### Created AMIs
+  <img src="images/assignment10/created_amis.png" alt="created AMIs" width="500">
 
-- #### Created Bastion and EC2 instances
-  <img src="images/bastion_and_private_ec2s.png" alt="Bastion & Private EC2 Instance" width="500">
+- #### Instance IPs from Terraform
+  <img src="images/assignment10/terraform_output.png" alt="Terraform output" width="500">
 
-- #### Bastion instance summary
-  <img src="images/bastion_summary.png" alt="Bastion instance summary" width="500">
+- #### Executing scripts/init_controller.sh
+  <img src="images/assignment10/script_init_controller.png" alt="init controller" width="500">
 
-- #### Private EC2 summary
-  <img src="images/private_ec2_summary.png" alt="EC2 instance summary" width="500">
+- #### Inventory graph
+  <img src="images/assignment10/ansible_inventory_graph.png" alt="Ansible inventory graph" width="500">
 
-- #### Created Subnets
-  <img src="images/created_subnets.png" alt="Created Subnets" width="500">
+- #### Ansible play: Docker version
+  <img src="images/assignment10/ansible_play_docker_version.png" alt="Docker version" width="500">
+
+- #### Ansible play: disk usage Ubuntu
+  <img src="images/assignment10/disk_usage_ubuntu.png" alt="Ubuntu disk" width="500">
+
+- #### Ansible play: disk usage Amazon Linux
+  <img src="images/assignment10/disk_usage_amazon.png" alt="Amazon disk" width="500">
+
+- #### Ansible playbook recap
+  <img src="images/assignment10/ansible_play_recap.png" alt="playbook recap" width="500">
