@@ -15,8 +15,8 @@ The custom AMI is pre-installed with Docker, and preconfigured with your SSH pub
   - [IP Setup for Bastion Host Access](#ip-setup-for-bastion-host-access)
   - [Initialize, Validate, and Apply](#initialize-validate-and-apply)
 - [Testing and Verification](#testing-and-verification)
-  - [SSH Access](#ssh-access)
 - [Troubleshooting](#troubleshooting)
+- [Clean up](#clean-up)
 - [Screenshots](#screenshots)
 
 ## Prerequisites
@@ -35,24 +35,28 @@ The custom AMI is pre-installed with Docker, and preconfigured with your SSH pub
 ## Setup
 
 ### Git clone
-Clone this repository locally and cd into it: 
+Clone this repository locally (branch assignment10) and cd into it: 
+
 ```bash
-git clone <repo_name>
-cd <repo_name>
+git clone -b assignment10 git@github.com:aawihardja-usfca/assignment8-packer-and-terraform.git
+
+cd assignment8-packer-and-terraform
 ```
 
 ### AWS credentials
-Set your AWS credentials by updating the file named `credentials`.<br> 
+Set your AWS credentials by updating the file named `credentials`. Replace each field with your credentials. <br> 
 
 <i>Example credentials file content:</i>
+
 ```ini
 [default]
 aws_access_key_id=<your access key id>
 aws_secret_access_key=<your secret access key>
 aws_session_token=<your session token>
 ```
-Replace each field with your credentials.  
-The Terraform files is already configured to look for your credentials in this file. Now we need to configure Packer to look for credentials in this manner, run the export command in your shell:
+
+The Terraform files is already configured to look for your credentials in this file. Now we need to configure Packer to look for credentials in this manner, run the export command in your terminal:
+
 ```shell
 export AWS_SHARED_CREDENTIALS_FILE=./credentials
 ```
@@ -83,12 +87,11 @@ Build your AMI using the following command:
 ```bash
 packer build aws-ami.pkr.hcl
 ```
-
-Packer will create 2 AMIs, using Ubuntu and another with Amazon Linux as the base image.
+This may take about 6 mins. Packer will create 2 AMIs, using Ubuntu and another with Amazon Linux as the base image.
 After a successful build, you should see output indicating the new AMI ID (e.g., <code>ami-0fb61569f4da07616</code>). You can verify this AMI in your AWS Console under <b>EC2 > Images > AMI</b>.
 
-<i>Example output snippet:</i>
-```yaml
+<i>Example output:</i>
+```shell
 ==> learn-packer.amazon-ebs.amazon-linux: Creating AMI packer-ami from instance i-073fd58a56d483b1d
     learn-packer.amazon-ebs.amazon-linux: AMI: ami-0fb61569f4da07616
 ==> Builds finished.
@@ -136,27 +139,29 @@ If you are in the project's root directory, use `-chdir`.
 
     <i>Example output</i>
     ```bash
-    controller_public_ip = "3.216.112.41"
-    ec2_ips = [
-    "10.0.1.196",
-    "10.0.1.85",
-    "10.0.1.163",
-    "10.0.1.140",
-    "10.0.1.61",
-    "10.0.1.171",
+    amazon_linux_ips = [
+      "10.0.1.109",
+      "10.0.1.118",
+      "10.0.1.105",
+    ]
+    controller_public_ip = "35.170.51.122"
+    ubuntu_ips = [
+      "10.0.2.83",
+      "10.0.2.29",
+      "10.0.2.15",
     ]
     ```
+    Note the controller and the managed nodes IP, as we will need it for testing later.
 
 ## Set up Ansible on the Controller
 
 After Terraform finishes provisioning your resources, locate the controller’s public IP in the Terraform output. Open the `scripts/init_controller.sh` file, find the `CONTROLLER_IP` variable, and update it with the controller’s public IP, for example:
 
 ```shell
-CONTROLLER_IP="18.215.63.83"
-...
+CONTROLLER_IP="35.170.51.122"
 ```
 
-From the project root directory, run:
+From the project's root directory, run:
 
 ```bash
 chmod +x scripts/init_controller.sh
@@ -180,16 +185,48 @@ After this script completes, your controller instance will be ready to manage th
     ```bash
     ssh -i my-aws-key ec2-user@<controller_ip>
     ```
+
+2. #### Test running Ansible inventory
+    From the user home directory, execute:
+    ```bash
+    ansible-inventory -i ansible/inventory.aws_ec2.yml --graph
+    ```
+
+    <i>Example output</i>
     
+    ```shell
+    @all:
+      |--@ungrouped:
+      |--@aws_ec2:
+      |  |--10.0.1.118
+      |  |--10.0.1.109
+      |  |--10.0.1.105
+      |  |--10.0.2.29
+      |  |--10.0.2.83
+      |  |--10.0.101.196
+      |  |--10.0.2.15
+      |--@amazon:
+      |  |--10.0.1.118
+      |  |--10.0.1.109
+      |  |--10.0.1.105
+      |--@ubuntu:
+      |  |--10.0.2.29
+      |  |--10.0.2.83
+      |  |--10.0.2.15
+    ```
+      
 2. #### Run the Ansible playbook
     From the user home directory execute:
+
     ```bash
     ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook.yml
     ```
+    
     This will upgrade packages, Docker and report the disk usage of the managed EC2s.
 
+    The output can be find under [Screenshots](#screenshots)
+
 ## Testing and Verification
-### SSH access
 
 1. #### SSH into the Controller:<br>
     Replace `controller_public_ip` with the output from Terraform:
@@ -199,17 +236,36 @@ After this script completes, your controller instance will be ready to manage th
     ```
     Accept the host key when prompted.
 
-2. #### SSH from the Controller to a Private EC2 Instance:
+2. #### SSH from the Controller to an managed EC2 instance:
     Replace `user` with the correct user (ec2-user for Amazon or ubuntu for Ubuntu). Replace `<ec2_ip>` with one of the private IP addresses:
     ```bash
     ssh -i ~/.ssh/my-aws-key <user>@<ec2_ip>
     ```
 
-3. #### Verify Docker Installation on the Private Instance:
+3. #### Check if Docker is running on the managed instance:
 
     ```bash
-    docker --version
+    systemctl status docker
     ```
+    
+    You should get an output like:
+
+    ```bash
+    ● docker.service - Docker Application Container Engine
+     Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2025-03-31 05:54:24 UTC; 25min ago
+    ```
+
+## Clean up
+Close the SSH connection by pressing `Ctrl + D`. Go to the project's root directory and run:
+
+```bash
+terraform -chdir=terraform_config destroy
+```
+
+Type yes when prompted.  
+
+You will need to remove the AMIs and the Snapshots from AWS Console manually.
 
 ## Troubleshooting
 - #### Missing SSH Key Error:<br>
