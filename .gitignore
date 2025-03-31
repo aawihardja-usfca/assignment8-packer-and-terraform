@@ -5,4 +5,7 @@
 # Ignore SSH keys
 my-aws-key*
 
+# Ignore credential file
+credentials
+
 out

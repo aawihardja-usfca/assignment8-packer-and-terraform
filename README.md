@@ -1,6 +1,7 @@
-# AWS AMI & Infrastructure Provisioning with Packer and Terraform
+# AWS Infrastructure with Packer, Terraform, and Ansible
 
-This repository contains scripts to create a custom AWS AMI with Packer and to provision AWS infrastructure using Terraform. The custom AMI is based on Amazon Linux, pre-installed with Docker, and preconfigured with your SSH public key for secure access. The Terraform configuration sets up a complete AWS environment including VPC, public and private subnets, a bastion host, and six EC2 instances in the private subnet using your custom AMI.
+This repository contains files to create a custom AWS AMI with Packer, provision EC2 using Terraform, and configuration management using Ansible.   
+The custom AMI is pre-installed with Docker, and preconfigured with your SSH public key for secure access. The Terraform configuration sets up an AWS environment with: VPC, public and private subnets, a bastion (as Ansible controller) in the public subnet, and 6 EC2 instances (as managed nodes) in the private subnet.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -33,16 +34,15 @@ This repository contains scripts to create a custom AWS AMI with Packer and to p
 
 ## Setup
 
-### AWS credentials
-You can set your AWS credentials by exporting them as environment variables:<br>
-```shell
-export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
-export AWS_SECRET_ACCESS_KEY="<YOUR_AWS_SECRET_ACCESS_KEY"
+### Git clone
+Clone this repository locally and cd into it: 
+```bash
+git clone <repo_name>
+cd <repo_name>
 ```
 
-Alternatively, create a credentials file at:
-- Linux/OS X: `$HOME/.aws/credentials`
-- Windows: `%USERPROFILE%\.aws\credentials`
+### AWS credentials
+Set your AWS credentials by updating the file named `credentials`.<br> 
 
 <i>Example credentials file content:</i>
 ```ini
@@ -51,7 +51,11 @@ aws_access_key_id=<your access key id>
 aws_secret_access_key=<your secret access key>
 aws_session_token=<your session token>
 ```
-Packer will use the default profile.
+Replace each field with your credentials.  
+The Terraform files is already configured to look for your credentials in this file. Now we need to configure Packer to look for credentials in this manner, run the export command in your shell:
+```shell
+export AWS_SHARED_CREDENTIALS_FILE=./credentials
+```
 
 ### SSH key pair
 Generate a key pair:
@@ -80,6 +84,7 @@ Build your AMI using the following command:
 packer build aws-ami.pkr.hcl
 ```
 
+Packer will create 2 AMIs, using Ubuntu and another with Amazon Linux as the base image.
 After a successful build, you should see output indicating the new AMI ID (e.g., <code>ami-0fb61569f4da07616</code>). You can verify this AMI in your AWS Console under <b>EC2 > Images > AMI</b>.
 
 <i>Example output snippet:</i>
@@ -90,44 +95,48 @@ After a successful build, you should see output indicating the new AMI ID (e.g.,
 ```
 
 ## Terraform Infrastructure Provisioning
-The Terraform scripts provision AWS resources including a VPC (with public and private subnets), a bastion host in the public subnet, and six EC2 instances in the private subnet using your custom AMI.
+The Terraform files provision AWS resources including a VPC (with public and private subnets), a bastion host in the public subnet, and 6 EC2s in the private subnet using the created AMI.
 
 ### IP setup for Bastion Host access
-Before provisioning, set your IP so that you can securely SSH into the bastion host. Make the <code>get_my_ip.sh</code> script executable:
+Before provisioning, set your IP so that you can securely SSH into the bastion host. Make the `get_my_ip.sh` script executable:
 ```bash
-chmod +x get_my_ip.sh
+chmod +x scripts/get_my_ip.sh
 ```
+
+Terraform will execute this script to set the security groups.
 
 ### Initialize, validate, and apply
 
+If you are in the project's root directory, use `-chdir`.
+
 1. #### Initialize the Terraform configuration:
     ```bash
-    terraform init
+    terraform -chdir=terraform_config init
     ```
 
 2. #### Validate the Terraform configuration
 
     ```bash
-    terraform validate
+    terraform -chdir=terraform_config validate
     ```
     Look for a success message: <code><font color="green">Success!</font> The configuration is valid.</code>
 
 3. #### Apply Terraform
 
     ```bash
-    terraform apply
+    terraform -chdir=terraform_config apply
     ```
     Review the plan, then type yes when prompted. The apply process will provision the resources and output the following:
 
-    - <b>bastion_public_ip</b>: The public IP of the bastion host.
+    - <b>controller_public_ip</b>: public IP of the controller.
 
-    - <b>ec2_ips</b>: A list of private IP addresses for the six EC2 instances.
+    - <b>amazon_linux_ips</b>: private IPs for the instances with Amazon AMI.
+
+    - <b>ubuntu_ips</b>: private IPs for the instances with Ubuntu AMI.
 
     <i>Example output</i>
     ```bash
-    Outputs:
-
-    bastion_public_ip = "3.216.112.41"
+    controller_public_ip = "3.216.112.41"
     ec2_ips = [
     "10.0.1.196",
     "10.0.1.85",
@@ -138,36 +147,65 @@ chmod +x get_my_ip.sh
     ]
     ```
 
+## Set up Ansible on the Controller
+
+After Terraform finishes provisioning your resources, locate the controller’s public IP in the Terraform output. Open the `scripts/init_controller.sh` file, find the `CONTROLLER_IP` variable, and update it with the controller’s public IP, for example:
+
+```shell
+CONTROLLER_IP="18.215.63.83"
+...
+```
+
+From the project root directory, run:
+
+```bash
+chmod +x scripts/init_controller.sh
+./scripts/init_controller.sh
+```
+This script performs the following steps:
+
+1. Copies the `./ansible` directory to the controller, including playbooks and inventory files.
+
+2. Transfers the public and private SSH keys to the controller, to enable it to communicate with managed nodes.
+
+3. Copies your AWS credentials under the file `credentials` into the controller, so that you can run the playbook.
+
+4. Installs the necessary tools on the controller, such as: `pip`, `ansible`, `boto`, and `botocore`.
+
+After this script completes, your controller instance will be ready to manage the private nodes using Ansible playbook.
+
+## Run Ansible Playbook from Controller
+1. #### SSH into the Controller
+    Replace `controller_ip` with the output from Terraform
+    ```bash
+    ssh -i my-aws-key ec2-user@<controller_ip>
+    ```
+    
+2. #### Run the Ansible playbook
+    From the user home directory execute:
+    ```bash
+    ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook.yml
+    ```
+    This will upgrade packages, Docker and report the disk usage of the managed EC2s.
+
 ## Testing and Verification
 ### SSH access
-1. #### Add your private key to the SSH Agent:
+
+1. #### SSH into the Controller:<br>
+    Replace `controller_public_ip` with the output from Terraform:
 
     ```bash
-    ssh-add my-aws-key
-    ```
-
-2. #### SSH into the Bastion host:<br>
-    Replace <code><bastion_public_ip></code> with the output from Terraform:
-
-    ```bash
-    ssh -A -i my-aws-key ec2-user@<bastion_public_ip>
+    ssh -i my-aws-key ec2-user@<controller_public_ip>
     ```
     Accept the host key when prompted.
 
-3. #### Verify Docker Installation on the Bastion Host:
-
+2. #### SSH from the Controller to a Private EC2 Instance:
+    Replace `user` with the correct user (ec2-user for Amazon or ubuntu for Ubuntu). Replace `<ec2_ip>` with one of the private IP addresses:
     ```bash
-    docker --version
-    ```
-    Expected output (e.g., <code>Docker version 25.0.8, build 0bab007</code>).
-
-4. #### SSH from the Bastion Host to a Private EC2 Instance:
-    Replace <code><ec2_ip></code> with one of the private IP addresses:
-    ```bash
-    ssh ec2-user@<ec2_ip>
+    ssh -i ~/.ssh/my-aws-key <user>@<ec2_ip>
     ```
 
-5. #### Verify Docker Installation on the Private Instance:
+3. #### Verify Docker Installation on the Private Instance:
 
     ```bash
     docker --version

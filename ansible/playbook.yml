@@ -36,11 +36,19 @@
           - docker-compose-plugin
         state: latest
     
-    - name: Add ubuntu to docker group
-      user:
-        name: ubuntu
-        groups: docker
-        append: yes
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Get Docker version
+      command: docker --version
+      register: docker_version
+
+    - name: Display Docker version
+      debug:
+        var: docker_version.stdout_lines 
 
     - name: Check disk usage on Ubuntu
       command: df -h
@@ -63,6 +71,20 @@
       dnf:
         name: docker
         state: latest
+    
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Get Docker version
+      command: docker --version
+      register: docker_version
+
+    - name: Display Docker version
+      debug:
+        var: docker_version.stdout_lines 
 
     - name: Check disk usage on Amazon Linux
       command: df -h
