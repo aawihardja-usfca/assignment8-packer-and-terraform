@@ -1,5 +1,7 @@
 provider "aws" {
-  region = var.aws_region
+  region                   = var.aws_region
+  shared_credentials_files = ["../credentials"]
+  profile                  = "default"
 }
 
 # Get the Amazon Linux AMI
@@ -46,7 +48,7 @@ data "aws_ami" "ubuntu" {
 
 # Run the script get_my_ip.sh
 data "external" "my_ip" {
-  program = ["bash", "${path.module}/scripts/get_my_ip.sh"]
+  program = ["bash", "${path.module}/../scripts/get_my_ip.sh"]
 }
 
 

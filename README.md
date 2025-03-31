@@ -77,7 +77,7 @@ Leave the passphrase empty. This command creates both <code>my-aws-key</code> an
 ### Build the AMI
 Build your AMI using the following command:
 ```bash
-packer build aws-amazonlinux.pkr.hcl
+packer build aws-ami.pkr.hcl
 ```
 
 After a successful build, you should see output indicating the new AMI ID (e.g., <code>ami-0fb61569f4da07616</code>). You can verify this AMI in your AWS Console under <b>EC2 > Images > AMI</b>.
